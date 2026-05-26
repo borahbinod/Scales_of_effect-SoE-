@@ -1,11 +1,7 @@
 # Scales_of_effect-SoE-
-This repository contains derived data, scripts for the SoE project
-# SoE BLISS Modeling
-
-Short description of what this repo does.
 
 ## Overview
-This repository contains code to run BLISS occupancy models for multiple species and BCR regions.
+This repository contains derived data, scripts for the SoE project
 
 ## Data
 - Observations: `Data_derived/observations`
