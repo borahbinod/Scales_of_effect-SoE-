@@ -1,1 +1,4 @@
-
+# Derived data used as input for the scale of effect analysis
+#1. observations.Rds: observations from eBird species across contigous USA used in the project. Each observation belongs to an unique checklist.
+#2. checklists.Rds: checklists from eBird across contigous USA. These checklists are spatially thinned and has unique ID. 
+#3. covariates.Rds: predictor values measured across multiple buffers around each checklist location. This file is large (>10GB) and not stored here.
