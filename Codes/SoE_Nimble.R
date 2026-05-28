@@ -335,31 +335,3 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
 SoE_results<- SoE_BLISS(species = "American Avocet",gpkg_path = "Data_derived/range_maps_Ebird/2022/ameavo/ranges/ameavo_range_raw_27km_2022.gpkg",niterations = 1000,nchains = 1,burnin = 10, nthin = 1)
 
 
-  ## analyzing some results
-cov.pars<- c("beta.0","beta.developed_low_intensity","beta.developed_high_intensity",
-             "beta.barren_land","beta.deciduous_forest","beta.evergreen_forest","beta.mixed_forest","beta.shrub_scrub","beta.grassland_herbaceous",
-             "beta.pasture_hay","beta.cultivated_crop","beta.woody_wetland","beta.emergent_wetland",
-             "beta.ocean","beta.lakes","beta.rivers",
-             "beta.elevation", "beta.aspect", "beta.slope",
-             "beta.precipitation","beta.max_temperature", "beta.snow",
-             "beta.effort_hours", "beta.number_observers",
-             "beta.time_of_day")
-scale.pars<- c("scale.1", "scale.2", "scale.3", "scale.4","scale.5", 
-               "scale.6", "scale.7", "scale.8","scale.9", "scale.10", 
-               "scale.11", "scale.12","scale.13", "scale.14", 
-               "scale.15", "scale.16", "scale.17", 
-               "scale.18", "scale.19", "scale.20")
-message(paste0("Model outputs for species: ", SoE_results$scales_results$species[1]))
-message(paste0("presences: ", length(which(SoE_results$data$z==1))," absences: ",length(which(SoE_results$data$z==0)) ))
-SoE_results$start_time; SoE_results$finish_time
-MCMCvis::MCMCtrace(SoE_results$samples, 
-         params = cov.pars[23:25], 
-          ISB = FALSE, iter=30000,
-          exact = TRUE,
-          pdf = FALSE)
-
-saveRDS(SoE_results,paste0("Data_derived/SoE_Results/", species, "_Results_", (niterations-burnin)/nthin,"iterations",".Rds"))
-
-stats::acf(SoE_results$samples[,"beta.max_temperature"])
-
-
