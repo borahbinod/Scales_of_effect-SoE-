@@ -1,0 +1,7 @@
+# necessary R libraries
+library(lubridate)
+library (auk)
+library (tidyverse)
+library (nimble)
+library (sf)
+library (MCMCvis)
