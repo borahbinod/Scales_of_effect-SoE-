@@ -1,2 +1,4 @@
 # scripts used in the SoE project
-#1. 
+#1. SoE_Nimble.R : script to run the rangewide scale of effect analysis for a species
+#2. SoE_nimble_bcr.R: script to run BCR wide scale of effect analysis of a species
+#3. 
