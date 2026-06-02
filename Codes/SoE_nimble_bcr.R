@@ -1,23 +1,14 @@
-library(lubridate)
-library(dplyr)
-library(tidyverse)
-library (auk)
-library (tidyverse)
-library (nimble)
-library (sf)
-library (MCMCvis)
-library (terra)
-
+lapply(c("lubridate","dplyr", "tidyverse", "auk","nimble","sf", "MCMCvis","terra"), library, character.only = TRUE)
 ### Data preparation for BLISS
 SoE_BLISS <- function(species, bcr, niterations,nchains, burnin, nthin){
   message(paste0("running SoE_BLISS for species:",species," for niterations =", niterations))
   start_time<- lubridate::now()
   # read checklists and observations
-  observations<- readRDS("C:/Users/A02291907/Documents/SoE_Project/SoE_Main/Data_files/Data_derived/observations/observations.Rds")
-  checklists<- readRDS("C:/Users/A02291907/Documents/SoE_Project/SoE_Main/Data_files/Data_derived/checklists/checklists.Rds")
+  observations<- readRDS("Data_derived/observations.Rds")
+  checklists<- readRDS("Data_derived/checklists.Rds")
   
   # read covariates data
-  covar<- readRDS("C:/Users/A02291907/Documents/SoE_Project/SoE_Main/Data_files/Data_derived/covariates/covariates.Rds")
+  covar<- readRDS("Data_derived/covariates.Rds")
   
   # attach covariates and expand to checklists
   checklists <- inner_join(checklists,covar,by="locality_id")
@@ -30,7 +21,7 @@ SoE_BLISS <- function(species, bcr, niterations,nchains, burnin, nthin){
   nrow(observations_species)
   
   # read sepecies range map
-  x.range<- st_read(paste0("C:/Users/A02291907/Documents/SoE_Project/SoE_Main/GIS_files/Data_derived/bcr_shapefiles/",bcr,".shp"))
+  x.range<- st_read(paste0("Data_derived/",bcr,".shp")) # these are BCR ranges
   #plot(st_geometry(xy.range))
   layer_mask<- st_as_sf(st_geometry(x.range))
   
@@ -58,11 +49,11 @@ SoE_BLISS <- function(species, bcr, niterations,nchains, burnin, nthin){
   nrow(shape_checklists)
   
   # zerofill
-  ebd_sp<- auk::auk_zerofill(observations_covar,sampling_events = shape_checklists)
+  ebd_sp<- auk::auk_zerofill(observations_covar,sampling_events = shape_checklists) # inserts zeros in checklists where a species was not observed, these are pseudo absences
   ebd_df<- collapse_zerofill(ebd_sp) ## combining ebd and sampling data
   
   ### convert time to decimal
-  source("C:/Users/A02291907/Documents/SoE_Project/SoE_Main/Data_files/Codes/time_to_decimal.R")
+  source("Codes/time_to_decimal.R")
   
   # clean up variables
   ebd_df <- ebd_df %>%
@@ -94,9 +85,9 @@ SoE_BLISS <- function(species, bcr, niterations,nchains, burnin, nthin){
   vars_sq<- paste(vars,"sq",sep="_")
   df.list<- list()
   ddf.list<- list()
-  for (v in 1:length(vars)){
+  for (v in 1:length(vars)){ # scaling covariates
     df<- species_df[, grepl(vars[v], names(species_df))]
-    dfx<- df[,c(1:11,seq(12,50,by=2))]
+    dfx<- df[,c(1:11,seq(12,50,by=2))]  
     ldx<- data.frame(matrix(NA,ncol = ncol(dfx),nrow = nrow(dfx)))
     pdx<- data.frame(matrix(NA,ncol = ncol(dfx),nrow = nrow(dfx)))
     for(d in 1:ncol(dfx)){
@@ -374,7 +365,7 @@ SoE_BLISS <- function(species, bcr, niterations,nchains, burnin, nthin){
   ) 
   results_df<- samples
   ## get selected scales
-  scale_vars<- read.csv("C:/Users/A02291907/Documents/SoE_Project/SoE_Main/Data_files/Data_derived/covariates/scale_indicators.csv",header=T)
+  scale_vars<- read.csv("Data_derived/scale_indicators.csv",header=T)
   all_variables <- colnames(results_df)
   scales_df <- results_df[,grepl("scale", all_variables)]
   selected_scales<- vector()
@@ -408,10 +399,10 @@ SoE_BLISS <- function(species, bcr, niterations,nchains, burnin, nthin){
 }
 
 SoE_results<- SoE_BLISS(species = "Baltimore Oriole",bcr = "Atlantic Northern Forest",niterations = 160000,nchains = 1,burnin = 10000, nthin = 5)
-
 saveRDS(SoE_results,paste0("Data_derived/BCR_results/", species,"_",bcr,"_Results_", (160000-10000)/5,"iterations",".Rds"))
 
-bcr_sample<- read.csv("Data_derived/bcr_samples.csv",header=T,check.names = FALSE)
+### this bit of code is used to batch run the BLISS model
+bcr_sample<- read.csv("Data_derived/bcr_samples.csv",header=T,check.names = FALSE) # file with sample sizes of species*BCR pairs
 names(bcr_sample) <- gsub("\\.", " ", names(bcr_sample))
 
 
@@ -422,7 +413,7 @@ ignore_cols <- c("species", "common_name", "model_counts", "status")
 bcr_cols <- setdiff(colnames(bcr_sample), ignore_cols)
 
 # loop over each species
-for (i in 320:330) {
+for (i in 1:nrow(bcr_sample) {
   
   species_i <- bcr_sample$common_name[i]
   
