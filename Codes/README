@@ -3,3 +3,5 @@
 #2. SoE_nimble_bcr.R: script to run BCR wide scale of effect analysis of a species
 #3. time_to_decimal.R: helper function used inside the BLISS function
 #4. predictive_model: predictive gradient boosting model 
+#5. combine_traits: helper funtion inside predictive_model to combine the traits with SoE
+#
