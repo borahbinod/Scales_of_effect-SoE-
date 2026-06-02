@@ -3,11 +3,11 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
   message(paste0("running SoE_BLISS for species:",species," for niterations =", niterations))
   start_time<- lubridate::now()
   # read checklists and observations
-  observations<- readRDS("Data_derived/observations/observations.Rds")
-  checklists<- readRDS("Data_derived/checklists/checklists.Rds")
+  observations<- readRDS("Data_derived/observations.Rds")
+  checklists<- readRDS("Data_derived/checklists.Rds")
   
   # read covariates data
-  covar<- readRDS("Data_derived/covariates/covariates.Rds")
+  covar<- readRDS("Data_derived/covariates.Rds") # this file is not uploaded due to its large size
   
   # attach covariates and expand to checklists
   checklists <- inner_join(checklists,covar,by="locality_id")
@@ -24,7 +24,7 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
   x.season<- intersect(x.range$season, c("breeding","resident"))
   message (paste0("using species:", species," ",x.season, " range"))
   xy.range<- x.range %>% filter(season %in% x.season)
-  #plot(st_geometry(xy.range))
+  #plot(st_geometry(xy.range))  # plots can be used to visualize, but they can slow down execution
   layer_mask<- st_as_sf(st_geometry(xy.range))
   
   
@@ -32,7 +32,7 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
   observations_df = st_as_sf(observations_species, coords = c("longitude", "latitude"), crs = 4326)
   shape_observations <- st_filter(observations_df, layer_mask)
   nrow(shape_observations)
-  #plot(st_geometry(layer_mask))
+  #plot(st_geometry(layer_mask))  # plots can be used to visualize, but they can slow down execution
   #points(observations_df, col = "black")
   #points(shape_observations, col = "green")
   
@@ -49,7 +49,7 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
   nrow(shape_checklists)
   
   # zerofill
-  ebd_sp<- auk::auk_zerofill(observations_covar,sampling_events = shape_checklists)
+  ebd_sp<- auk::auk_zerofill(observations_covar,sampling_events = shape_checklists) # inserts 0 in a checklists where a species was not observed, these are pseudo-absences
   ebd_df<- collapse_zerofill(ebd_sp) ## combining ebd and sampling data
   
   ### convert time to decimal
@@ -83,7 +83,7 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
            "woody_wetlands","emergent_wetlands","land","ocean","river","lake","elevation","slope","aspect",
            "precipitation","temperature_avg","temperature_max","temperature_min")
   df.list<- list()
-  for (v in 1:length(vars)){
+  for (v in 1:length(vars)){    # scaling covariates   # in our model we further filtered the scales tested, here we provide the code to test all 50 scales, whereas we only tested 31 scales. This was done to reduce runtime
     df<- species_df[, grepl(vars[v], names(species_df))]
     df.scaled<- apply(df, 2, function(y) (y - mean(y)) / sd(y) ^ as.logical(sd(y)))
     df.list[[v]]<- df.scaled
@@ -299,7 +299,7 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
   ) 
   results_df<- samples
   ## get selected scales
-  scale_vars<- read.csv("Data_derived/covariates/scale_indicators.csv",header=T)
+  scale_vars<- read.csv("Data_derived/scale_indicators.csv",header=T) # variable names associated with their dummy variables
   all_variables <- colnames(results_df)
   scales_df <- results_df[,grepl("scale", all_variables)]
   selected_scales<- vector()
@@ -332,6 +332,6 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
     
 }
 
-SoE_results<- SoE_BLISS(species = "American Avocet",gpkg_path = "Data_derived/range_maps_Ebird/2022/ameavo/ranges/ameavo_range_raw_27km_2022.gpkg",niterations = 1000,nchains = 1,burnin = 10, nthin = 1)
+SoE_results<- SoE_BLISS(species = "American Avocet",gpkg_path = "Data_derived/range_maps_Ebird/2022/ameavo/ranges/ameavo_range_raw_27km_2022.gpkg",niterations = 40000,nchains = 1,burnin = 10000, nthin = 1) # range maps are available from eBird trends
 
 
