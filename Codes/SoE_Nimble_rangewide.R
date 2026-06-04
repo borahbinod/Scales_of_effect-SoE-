@@ -3,17 +3,17 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
   message(paste0("running SoE_BLISS for species:",species," for niterations =", niterations))
   start_time<- lubridate::now()
   # read checklists and observations
-  observations<- readRDS("Data_derived/observations.Rds")
-  checklists<- readRDS("Data_derived/checklists.Rds")
+  observations<- readRDS("Data_derived/observations.Rds") # these are the observations of all species
+  checklists<- readRDS("Data_derived/checklists.Rds") # these are the spatially thinned checklists that have the observations
   
   # read covariates data
-  covar<- readRDS("Data_derived/covariates.Rds") # this file is not uploaded due to its large size
+  covar<- readRDS("Data_derived/covariates.Rds") # predictor values extracted at multiple radii around each checklist location, this file is not uploaded due to its large size
   
   # attach covariates and expand to checklists
-  checklists <- inner_join(checklists,covar,by="locality_id")
+  checklists <- inner_join(checklists,covar,by="locality_id") # appending covariates to checklists 
   
   # remove observations without matching checklists
-  observations_selected <- semi_join(observations, checklists, by = "checklist_id")
+  observations_selected <- semi_join(observations, checklists, by = "checklist_id") 
   
   # select a species
   observations_species<- observations_selected %>% filter(common_name %in% species)
@@ -39,7 +39,7 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
   # attach and expand covarites to observation data
   observations_covar<- inner_join(shape_observations,covar, by="locality_id") %>% st_drop_geometry()
   
-  # mask checklists by species ranged
+  # mask checklists by species range
   checklists_df = st_as_sf(checklists, coords = c("longitude", "latitude"), crs = 4326)
   shape_checklists<- st_filter(checklists_df , layer_mask)
   #plot(st_geometry(layer_mask))
