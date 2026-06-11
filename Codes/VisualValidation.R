@@ -29,7 +29,7 @@ MCMCvis::MCMCtrace(SoE_results$samples,
                    params = c(cov.pars,scale.pars), # checking three coefficients at a time
                    ISB = FALSE, iter= 30000,
                    exact = TRUE,
-                   pdf = TRUE,filename = paste0("Data_derived/Trace_plots/",SoE_results$scales_results$species[1],"_",SoE_results$niterations,"iters","_",SoE_results$nthin,"thin")) # change path accordingly
+                   pdf = TRUE,filename = paste0("Data_derived/Trace_plots/",SoE_results$scales_results$species[1],"_",SoE_results$niterations,"iters","_",SoE_results$nthin,"thin")) # change path accordingly, for BCR you will need to paste the BCR name also
 
 }
 
