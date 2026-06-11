@@ -83,12 +83,12 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
            "barren_land","deciduous_forest","evergreen_forest","mixed_forest","shrub_scrub","grassland_herbaceous","pasture_hay","cultivated_crops",
            "woody_wetlands","emergent_wetlands","land","ocean","river","lake","elevation","slope","aspect",
            "precipitation","temperature_avg","temperature_max","temperature_min")
-  vars_sq<- paste(vars,"sq",sep="_")
+  vars_sq<- paste(vars,"sq",sep="_") # create a list of quadratic predictors
   df.list<- list()
   ddf.list<- list()
   for (v in 1:length(vars)){
     df<- species_df[, grepl(vars[v], names(species_df))]
-    dfx<- df[,c(1:11,seq(12,50,by=2))]
+    dfx<- df[,c(1:11,seq(12,50,by=2))] ### this filtering was used post-hoc i.e., we had already extracted predictor values at all scales, but decided post-hoc to test only a subset of scales. This line allows to select those scales that we actually tested
     ldx<- data.frame(matrix(NA,ncol = ncol(dfx),nrow = nrow(dfx)))
     pdx<- data.frame(matrix(NA,ncol = ncol(dfx),nrow = nrow(dfx)))
     for(d in 1:ncol(dfx)){
@@ -402,53 +402,7 @@ SoE_BLISS <- function(species, gpkg_path, niterations,nchains, burnin, nthin){
 SoE_results<- SoE_BLISS(species = "Allen's Hummingbird",gpkg_path = "Data_derived/2022/allhum/ranges/allhum_range_raw_27km_2022.gpkg",niterations = 100,nchains = 1,burnin = 10, nthin = 1)
 
 
-## analyzing some results
-cov.pars<- c("beta.0","beta.developed_low_intensity","beta.developed_high_intensity",
-             "beta.barren_land","beta.deciduous_forest","beta.evergreen_forest","beta.mixed_forest","beta.shrub_scrub","beta.grassland_herbaceous",
-             "beta.pasture_hay","beta.cultivated_crop","beta.woody_wetland","beta.emergent_wetland",
-             "beta.ocean","beta.lakes","beta.rivers",
-             "beta.elevation", "beta.aspect", "beta.slope",
-             "beta.precipitation","beta.max_temperature", "beta.snow",
-             "beta.effort_hours", "beta.number_observers",
-             "beta.time_of_day")
-scale.pars<- c("scale.1", "scale.2", "scale.3", "scale.4","scale.5", 
-               "scale.6", "scale.7", "scale.8","scale.9", "scale.10", 
-               "scale.11", "scale.12","scale.13", "scale.14", 
-               "scale.15", "scale.16", "scale.17", 
-               "scale.18", "scale.19", "scale.20")
-message(paste0("Model outputs for species: ", SoE_results$scales_results$species[1]))
-message(paste0("presences: ", length(which(SoE_results$data$z==1))," absences: ",length(which(SoE_results$data$z==0)) ))
-SoE_results$start_time; SoE_results$finish_time
-MCMCvis::MCMCtrace(SoE_results$samples, 
-                   params = cov.pars, 
-                   ISB = FALSE, iter=30000,
-                   exact = TRUE,
-                   pdf = TRUE)
-
-saveRDS(SoE_results,paste0("Data_derived/SoE_Results/", species, "_Results_", (niterations-burnin)/nthin,"iterations",".Rds"))
-
-stats::acf(SoE_results$samples[,"beta.max_temperature"])
 
 
 
-ddf.list<- list()
-for (v in 1:length(vars)){
-  df<- species_df[, grepl(vars[v], names(species_df))]
-  dfx<- df[,c(1:11,seq(12,50,by=2))]
-  pdx<- data.frame(matrix(NA,ncol = ncol(dfx),nrow = nrow(dfx)))
-  pdx2<- data.frame(matrix(NA,ncol = ncol(dfx),nrow = nrow(dfx)))
-  for(d in 1:ncol(dfx)){
-    ifelse(length(unique(dfx[,d,drop=TRUE]))>2,pdx[,d]<- poly(dfx[,d, drop=TRUE],degree = 2,raw=F)[,1],pdx[,d]<- NA)
-    ifelse(length(unique(dfx[,d,drop=TRUE]))>2,pdx2[,d]<- poly(dfx[,d, drop=TRUE],degree = 2,raw=F)[,2],pdx2[,d]<- NA)
-  }
-  ddf.list[[v]]<- pdx
-  assign(vars_sq[v],ddf.list[[v]])
-}
-df<- species_df[, grepl(vars[7], names(species_df))]
-zzz<- length(unique(dfx[,1, drop=TRUE]))>2
-poly((dfx[,1, drop=TRUE]),2)
 
-df.scaled<- apply(df, 2, function(y) (y - mean(y)) / sd(y) ^ as.logical(sd(y)))
-
-
-Sys.which("make")
