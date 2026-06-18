@@ -33,3 +33,48 @@ MCMCvis::MCMCtrace(SoE_results$samples,
 
 }
 
+# For BCR the code is:
+y<-list.files(path="Data_derived/BCR_results",pattern="\\.Rds$",full.names = T)
+rds_list <- lapply(y, readRDS)
+for (i in seq_along(y)) {
+  
+  SoE_results <- rds_list[[i]]
+  
+  # Get filename only
+  fname <- basename(y[i])
+  
+  # Extract species and region
+  species <- strsplit(fname, "_")[[1]][1]
+  region  <- strsplit(fname, "_")[[1]][2]
+  
+  # Clean filename components
+  species_file <- gsub("[^[:alnum:] ]", "", species)
+  region_file  <- gsub("[^[:alnum:] ]", "", region)
+  
+  outfile <- file.path(
+    "Data_derived",
+    "Trace_plots_BCR",
+    paste0(
+      species_file, "_",
+      region_file, "_",
+      SoE_results$niterations, "iters_",
+      SoE_results$nthin, "thin"
+    )
+  )
+  
+  cat("Writing:", outfile, "\n")
+  
+  message("Model outputs for species: ", SoE_results$scales_results$species[1])
+  message("presences: ", sum(SoE_results$data$z == 1),
+          " absences: ", sum(SoE_results$data$z == 0))
+  
+  MCMCvis::MCMCtrace(
+    SoE_results$samples,
+    params = c(cov.pars, scale.pars),
+    ISB = FALSE,
+    iter = SoE_results$niterations,
+    exact = TRUE,
+    pdf = TRUE,
+    filename = outfile
+  )
+} # ignore the warnings() 
